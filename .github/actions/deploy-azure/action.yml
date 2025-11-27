@@ -1,0 +1,49 @@
+
+name: 'Deploy to Azure (Composite)'
+description: 'Generic action to deploy resources to Azure using az CLI'
+
+inputs:
+  resourceGroup:
+    description: 'Azure Resource Group'
+    required: true
+  templateFile:
+    description: 'Path to Bicep or ARM template (relative to repo root)'
+    required: false
+    default: ./main.bicep
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Diagnostics - list files and print inputs
+      shell: bash
+      run: |
+        echo "Working directory: $PWD"
+        echo "Repository root listing:"
+        ls -la
+        echo "Input resourceGroup: ${{ inputs.resourceGroup }}"
+        echo "Input templateFile: ${{ inputs.templateFile }}"
+        if command -v realpath >/dev/null 2>&1; then
+          realpath "${{ inputs.templateFile }}" || echo "realpath failed (path may not exist yet)"
+        else
+          echo "realpath not available on runner."
+        fi
+
+    - name: Validate template exists
+      shell: bash
+      run: |
+        if [ -z "${{ inputs.templateFile }}" ]; then
+          echo "ERROR: 'templateFile' input is empty. Please set it (e.g., './main.bicep')."
+          exit 1
+        fi
+        if [ ! -f "${{ inputs.templateFile }}" ]; then
+          echo "ERROR: Template file '${{ inputs.templateFile }}' not found."
+          echo "Tip: If your file is under a folder, update templateFile (e.g., './infra/main.bicep')."
+          exit 1
+        fi
+        echo "Template file found: '${{ inputs.templateFile }}'"
+
+    - name: Deploy Bicep/ARM Template
+      shell: bash
+      run: |
+        set -e
+        az deployment group create           --resource-group "${{ inputs.resourceGroup }}"           --template-file "${{ inputs.templateFile }}"

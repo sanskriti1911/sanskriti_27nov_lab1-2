@@ -1,0 +1,32 @@
+
+name: Lab 1 Assignment
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Azure Login (Service Principal via creds)
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Ensure Bicep is available
+        shell: bash
+        run: |
+          az bicep version || az bicep install
+
+      - name: Deploy Bicep to RG
+        uses: ./.github/actions/deploy-azure
+        with:
+          resourceGroup: Shivansh_Dubey_RG
+          templateFile: ./main.bicep

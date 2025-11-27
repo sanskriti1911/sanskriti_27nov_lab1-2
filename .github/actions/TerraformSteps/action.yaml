@@ -1,0 +1,69 @@
+
+name: 'Terraform Steps (Composite)'
+description: 'Generic Terraform runner for init/plan/apply with Azure auth via ARM_* env vars'
+
+inputs:
+  workingDirectory:
+    description: 'Path to directory containing Terraform configuration'
+    required: false
+    default: infra/terraform
+  tfVarsFile:
+    description: 'Optional .tfvars file path'
+    required: false
+    default: ''
+  apply:
+    description: 'Whether to run terraform apply (true/false)'
+    required: false
+    default: 'true'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Diagnostics
+      shell: bash
+      run: |
+        echo "Working directory: $PWD"
+        echo "List repo root:" && ls -la
+        echo "Input workingDirectory: ${{ inputs.workingDirectory }}"
+        echo "Input tfVarsFile: ${{ inputs.tfVarsFile }}"
+        echo "Input apply: ${{ inputs.apply }}"
+        echo "ARM_CLIENT_ID present? " && [ -n "$ARM_CLIENT_ID" ] && echo yes || echo no
+        echo "ARM_SUBSCRIPTION_ID: ${ARM_SUBSCRIPTION_ID:-not-set}"
+
+    - name: Validate Terraform directory
+      shell: bash
+      run: |
+        if [ ! -d "${{ inputs.workingDirectory }}" ]; then
+          echo "ERROR: Directory '${{ inputs.workingDirectory }}' not found."; exit 1
+        fi
+
+    - name: Terraform Init
+      shell: bash
+      run: |
+        set -e
+        cd "${{ inputs.workingDirectory }}"
+        terraform --version || echo "Terraform not found in PATH"
+        terraform init -input=false
+
+    - name: Terraform Plan
+      shell: bash
+      run: |
+        set -e
+        cd "${{ inputs.workingDirectory }}"
+        if [ -n "${{ inputs.tfVarsFile }}" ]; then
+          terraform plan -input=false -out=tfplan -var-file="${{ inputs.tfVarsFile }}"
+        else
+          terraform plan -input=false -out=tfplan
+        fi
+
+    - name: Terraform Apply (conditional)
+      if: ${{ inputs.apply == 'true' }}
+      shell: bash
+      run: |
+        set -e
+        cd "${{ inputs.workingDirectory }}"
+        if [ -f tfplan ]; then
+          terraform apply -input=false -auto-approve tfplan
+        else
+          terraform apply -input=false -auto-approve
+        fi
