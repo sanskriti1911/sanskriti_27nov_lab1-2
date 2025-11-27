@@ -1,5 +1,5 @@
 
-name: Lab 2 - Deploy using Actions (Terraform)
+name: Sanskriti Lab 2 
 
 on:
   workflow_dispatch:

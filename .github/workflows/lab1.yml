@@ -1,5 +1,5 @@
 
-name: Lab 1 Assignment
+name: Sanskriti Lab 1 Assignment
 
 on:
   workflow_dispatch:
@@ -28,5 +28,5 @@ jobs:
       - name: Deploy Bicep to RG
         uses: ./.github/actions/deploy-azure
         with:
-          resourceGroup: Shivansh_Dubey_RG
+          resourceGroup: Sanskriti_Mahendra_RG
           templateFile: ./main.bicep

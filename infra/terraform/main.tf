@@ -21,7 +21,7 @@ provider "azurerm" {
 
 # Use existing Resource Group
 data "azurerm_resource_group" "rg" {
-  name = "Shivansh_Dubey_RG"
+  name = "Sanskriti_Mahendra_RG"
 }
 
 # Random suffix for unique storage account name
@@ -35,7 +35,7 @@ resource "random_string" "suffix" {
 
 # Storage Account (public access enabled for simplicity)
 resource "azurerm_storage_account" "lab2_sa" {
-  name                     = "shivanshlab2${random_string.suffix.result}"
+  name                     = "sanskritilab2${random_string.suffix.result}"
   resource_group_name      = data.azurerm_resource_group.rg.name
   location                 = data.azurerm_resource_group.rg.location
   account_tier             = "Standard"
@@ -56,6 +56,6 @@ resource "azurerm_storage_account" "lab2_sa" {
 
   tags = {
     lab   = "lab2"
-    owner = "shivansh dubey"
+    owner = "Sanskriti Mahendra"
   }
 }
